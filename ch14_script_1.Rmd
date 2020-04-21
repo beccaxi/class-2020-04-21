@@ -106,6 +106,37 @@ predict(logistic_fit, new_data = dom)
 
 2) Looking at the randomForest model, what does the OOB error tell us? Interpret the first row, second column of the confusion matrix, what does that 920 represent? How does 920 relate to the class.error of 0.078?
 
+```{r scene3}
+
+set.seed(1005)
+tree <- decision_tree() %>% 
+  set_engine("rpart", model = TRUE) %>% 
+  set_mode("classification") 
+
+CART <- fit(tree,
+            factor(trump) ~ gender + age + educ + race + income + party + ideology,
+            data = cces)
+
+CART$fit %>% 
+  prp(extra = "auto")
+
+# Creating a random forest model
+
+forest <- rand_forest(mtry = 7, trees = 50) %>% 
+  set_engine("randomForest") %>%
+  set_mode("classification")
+
+randomForest <- fit(forest,
+                    factor(trump) ~ gender + age + educ + race + income + party + ideology,
+                    data = cces)
+
+randomForest
+
+# 1) Dom falls into not voting for Trump (the left-hand side)
+
+# 2) OOB means error of 9.06%, or an accuracy of 90.94%.
+
+```
 
 
 # Scene 4
