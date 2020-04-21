@@ -29,6 +29,23 @@ cces <- read_rds("cces_initial.rds")
 
 2) What proportion of females voted for Trump? 
 
+```{r scene1}
+
+summary(cces)
+
+cces %>% 
+  arrange(desc(age)) %>% 
+  select(age) %>% 
+  head(1) %>% 
+  pluck(1)
+
+# 95 years old
+
+female_trump <- cces %>% 
+  filter(gender == "Female") %>% 
+  summarize(mean_vote = mean(trump == 1))
+```
+
 
 # Scene 2
 
@@ -38,6 +55,47 @@ cces <- read_rds("cces_initial.rds")
 
 2) What is the expected vote for Dom - who is Male, 37, holds a 4-year degree (placing him in the 5 `educ` bucket), Asian, makes $77,000, with `ideology` and `party` equal to 3. (Hint: use predict().)
 
+```{r scene2}
+
+# creating the logistic model
+
+logistic_mod <- logistic_reg() %>% 
+  set_engine("glm")
+
+# parallel slopes model, since we use + 
+
+# fitting model to try and predict Trump vote using all other variables
+
+logistic_fit <- fit(logistic_mod, 
+                    formula = trump ~ gender + age + educ + race + income + party + ideology, 
+                    data = cces)
+
+logistic_fit %>% 
+  tidy(conf.int = TRUE) %>% 
+  select(term, estimate, conf.low, conf.high)
+
+-0.3397 / 4 = -0.084925
+
+# 1) genderFemale offsets the intercept from the original Intercept (which is
+# male) so the (largest) effect of being female is about a 8% less likely chance
+# to vote for Trump (as opposed to being male)
+
+# Also, we see that the coefficient on income is MUCH smaller than the
+# coefficients on party and ideology, which understandably influence voting
+# decisions far more than just income alone
+
+dom <- tibble(gender = "Male",
+              age = 37, 
+              educ = 5, 
+              race = "Asian", 
+              income = 8, 
+              ideology = 3, 
+              party = 3)
+
+predict(logistic_fit, new_data = dom)
+
+# 2) this fits to 0, so Dom would not vote for Trump
+```
 
 
 # Scene 3
